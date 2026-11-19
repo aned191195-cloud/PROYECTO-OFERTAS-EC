@@ -140,8 +140,10 @@ export default function App() {
   const actualizar = useCallback(async () => {
     setCargando(true);
     setError(null);
+    const control = new AbortController();
+    const limite = setTimeout(() => control.abort(), 20000); // no esperar eternamente
     try {
-      const r = await fetch(URL_DATOS, { cache: 'no-store' });
+      const r = await fetch(URL_DATOS, { cache: 'no-store', signal: control.signal });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const texto = await r.text();
       const nuevos = JSON.parse(texto);
@@ -151,6 +153,7 @@ export default function App() {
     } catch (e) {
       setError('Sin conexión: mostrando las últimas ofertas guardadas.');
     } finally {
+      clearTimeout(limite);
       setCargando(false);
     }
   }, []);
